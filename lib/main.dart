@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -6,59 +7,88 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'TheManhattan',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
+      debugShowCheckedModeBanner: false,
+      title: 'My Website',
+      theme: ThemeData.dark(),
+      home: MyHomePage(
+        title: 'TheManhattan.org',
+        url: 'https://themanhattan.org/',
       ),
-      home: MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key}) : super(key: key);
+  MyHomePage({Key key, this.title, this.url});
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-
+  final String title;
+  final String url;
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  bool loading = true;
+  WebViewController _controller;
+  final Completer<WebViewController> _controllerCompleter =
+      Completer<WebViewController>();
+  //Make sure this function return Future<bool> otherwise you will get an error
+  Future<bool> _onWillPop(BuildContext context) async {
+    if (await _controller.canGoBack()) {
+      _controller.goBack();
+      return Future.value(false);
+    } else {
+      return Future.value(true);
+    }
+  }
+
+  startSplashScreen() async {
+    var duration = const Duration(seconds: 4);
+    return Timer(
+      duration,
+      () {
+        setState(() {
+          loading = false;
+        });
+      },
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    startSplashScreen();
+  }
+
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-        body: Builder(builder: (BuildContext context) {
-          return WebView(
-            initialUrl: 'https://themanhattan.org/',
-          );
-        }));
+    return WillPopScope(
+      onWillPop: () => _onWillPop(context),
+      child: Scaffold(
+        appBar: AppBar(
+          toolbarHeight: 1,
+        ),
+        body: loading == true
+            ? Center(
+                child: Image.asset(
+                  "assets/tmo2.gif",
+                  fit: BoxFit.fill,
+                ),
+              )
+            : SafeArea(
+                child: WebView(
+                  key: UniqueKey(),
+                  initialUrl: widget.url,
+                  onWebViewCreated: (WebViewController webViewController) {
+                    _controllerCompleter.complete(webViewController);
+                  },
+                  javascriptMode: JavascriptMode.unrestricted,
+                ),
+              ),
+      ),
+    );
   }
 }
