@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'My Website',
+      title: 'TheManhattan',
       theme: ThemeData.dark(),
       home: MyHomePage(
         title: 'TheManhattan.org',
@@ -75,7 +75,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ? Center(
                 child: Image.asset(
                   "assets/tmo2.gif",
-                  fit: BoxFit.fill,
+                  fit: BoxFit.contain,
                 ),
               )
             : SafeArea(
